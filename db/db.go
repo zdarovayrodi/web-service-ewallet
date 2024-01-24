@@ -8,13 +8,13 @@ import (
 )
 
 func InitDB() *gorm.DB {
-	DB, err := gorm.Open(sqlite.Open("wallets.DB"), &gorm.Config{})
+	DB, err := gorm.Open(sqlite.Open("ewallet.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
 
 	// migrate the schema
-	err = DB.AutoMigrate(&models.Wallet{})
+	err = DB.AutoMigrate(&models.Wallet{}, &models.Transaction{})
 
 	if err != nil {
 		panic("error while migrating")

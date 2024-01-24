@@ -94,6 +94,12 @@ func transferFunds(context *gin.Context) {
 		return
 	}
 
+	_, err = models.CreateTransaction(DB, fromWallet.ID, toWallet.ID, transferFundsRequest.Amount)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create transaction"})
+		return
+	}
+
 	fromWallet.Balance -= transferFundsRequest.Amount
 	toWallet.Balance += transferFundsRequest.Amount
 
