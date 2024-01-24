@@ -52,6 +52,66 @@ func postWallet(context *gin.Context) {
 	context.JSON(http.StatusCreated, createdWallet)
 }
 
+// Перевод средств с одного кошелька на другой
+// Эндпоинт - POST /api/v1/wallet/{walletId}/send
+// Параметры запроса:
+// walletId – строковый ID кошелька, указан в пути запроса
+// JSON-объект в теле запроса с параметрами:
+// to – ID кошелька, куда нужно перевести деньги
+// amount – сумма перевода
+// Статус ответа 200 если перевод успешен
+// Статус ответа 404 если исходящий кошелек не найден
+// Статус ответа 400 если целевой кошелек не найден или на исходящем нет нужной суммы
+
+// POST /api/v1/wallet/{walletId}/send
+func transferFunds(context *gin.Context) {
+	walletID := context.Param("walletID")
+
+	fromWallet, err := models.GetWallet(DB, walletID)
+	if err != nil {
+		context.JSON(http.StatusNotFound, gin.H{"error": "Source wallet not found"})
+		return
+	}
+
+	var transferFundsRequest struct {
+		To     string  `json:"to"`
+		Amount float64 `json:"amount"`
+	}
+
+	if err := context.BindJSON(&transferFundsRequest); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+		return
+	}
+
+	toWallet, err := models.GetWallet(DB, transferFundsRequest.To)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Destination wallet not found"})
+		return
+	}
+
+	if fromWallet.Balance < transferFundsRequest.Amount {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Insufficient funds"})
+		return
+	}
+
+	fromWallet.Balance -= transferFundsRequest.Amount
+	toWallet.Balance += transferFundsRequest.Amount
+
+	_, err = models.UpdateWallet(DB, fromWallet)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update source wallet"})
+		return
+	}
+
+	_, err = models.UpdateWallet(DB, toWallet)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update destination wallet"})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"status": "Transfer successful"})
+}
+
 func main() {
 	//db
 	DB = db.InitDB()
@@ -59,8 +119,9 @@ func main() {
 	// api
 	router := gin.Default()
 	router.GET("/api/v1/wallets", getWallets)
-	router.GET("/api/v1/wallets/:id", getWalletById)
 	router.POST("/api/v1/wallets", postWallet)
+	router.POST("/api/v1/wallets/:walletID/send", transferFunds)
+	router.GET("/api/v1/wallets/:id", getWalletById)
 
 	router.Run("localhost:8080")
 }
