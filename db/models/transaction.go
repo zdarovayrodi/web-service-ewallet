@@ -23,3 +23,15 @@ func CreateTransaction(db *gorm.DB, senderID uuid.UUID, recipientID uuid.UUID, a
 	err := db.Create(&transaction).Error
 	return transaction, err
 }
+
+func GetIncomingTransactions(db *gorm.DB, walletID uuid.UUID) ([]Transaction, error) {
+	var incomingTransactions []Transaction
+	err := db.Where("recipient_wallet_id = ?", walletID).Find(&incomingTransactions).Error
+	return incomingTransactions, err
+}
+
+func GetOutgoingTransactions(db *gorm.DB, walletID uuid.UUID) ([]Transaction, error) {
+	var outgoingTransactions []Transaction
+	err := db.Where("sender_wallet_id = ?", walletID).Find(&outgoingTransactions).Error
+	return outgoingTransactions, err
+}

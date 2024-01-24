@@ -118,6 +118,46 @@ func transferFunds(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"status": "Transfer successful"})
 }
 
+// Получение историй входящих и исходящих транзакций
+// Эндпоинт – GET /api/v1/wallet/{walletId}/history
+// Параметры запроса:
+// walletId – строковый ID кошелька, указан в пути запроса
+// Ответ с статусом 200 если кошелек найден. Ответ должен содержать в теле массив JSON-объектов с входящими и исходящими транзакциями кошелька. Каждый объект содержит параметры:
+// time – дата и время перевода в формате RFC 3339
+// from – ID исходящего кошелька
+// to – ID входящего кошелька
+// amount – сумма перевода. Дробное число
+// Статус ответа 404 если указанный кошелек не найден
+
+// GET /api/v1/wallet/{walletId}/history
+func getTransactionHistory(context *gin.Context) {
+	walletID := context.Param("walletID")
+
+	wallet, err := models.GetWallet(DB, walletID)
+	if err != nil {
+		context.JSON(http.StatusNotFound, gin.H{"error": "Wallet not found"})
+	}
+
+	var incomingTransactions []models.Transaction
+	var outgoingTransactions []models.Transaction
+
+	incomingTransactions, err = models.GetIncomingTransactions(DB, wallet.ID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve incoming transactions"})
+		return
+	}
+
+	outgoingTransactions, err = models.GetOutgoingTransactions(DB, wallet.ID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve outgoing transactions"})
+		return
+	}
+
+	transactionHistory := append(incomingTransactions, outgoingTransactions...)
+
+	context.IndentedJSON(http.StatusOK, gin.H{"transactionHistory": transactionHistory})
+}
+
 func main() {
 	//db
 	DB = db.InitDB()
@@ -126,8 +166,9 @@ func main() {
 	router := gin.Default()
 	router.GET("/api/v1/wallets", getWallets)
 	router.POST("/api/v1/wallets", postWallet)
+	router.GET("/api/v1/wallets/:walletID/history", getTransactionHistory)
 	router.POST("/api/v1/wallets/:walletID/send", transferFunds)
-	router.GET("/api/v1/wallets/:id", getWalletById)
+	router.GET("/api/v1/wallets/:walletID", getWalletById)
 
 	router.Run("localhost:8080")
 }
