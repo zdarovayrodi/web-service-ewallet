@@ -17,9 +17,9 @@ func getWallets(context *gin.Context) {
 	models.GetAllWallets(context, DB)
 }
 
-// GET /api/v1/wallets/{id}
+// GET /api/v1/wallets/{walletID}
 func getWalletById(context *gin.Context) {
-	id := context.Param("id")
+	id := context.Param("walletID")
 	wallet, err := models.GetWallet(DB, id)
 	if err != nil {
 		context.JSON(http.StatusNotFound, gin.H{"message": "Wallet not found"})
@@ -51,17 +51,6 @@ func postWallet(context *gin.Context) {
 
 	context.JSON(http.StatusCreated, createdWallet)
 }
-
-// Перевод средств с одного кошелька на другой
-// Эндпоинт - POST /api/v1/wallet/{walletId}/send
-// Параметры запроса:
-// walletId – строковый ID кошелька, указан в пути запроса
-// JSON-объект в теле запроса с параметрами:
-// to – ID кошелька, куда нужно перевести деньги
-// amount – сумма перевода
-// Статус ответа 200 если перевод успешен
-// Статус ответа 404 если исходящий кошелек не найден
-// Статус ответа 400 если целевой кошелек не найден или на исходящем нет нужной суммы
 
 // POST /api/v1/wallet/{walletId}/send
 func transferFunds(context *gin.Context) {
@@ -117,17 +106,6 @@ func transferFunds(context *gin.Context) {
 
 	context.JSON(http.StatusOK, gin.H{"status": "Transfer successful"})
 }
-
-// Получение историй входящих и исходящих транзакций
-// Эндпоинт – GET /api/v1/wallet/{walletId}/history
-// Параметры запроса:
-// walletId – строковый ID кошелька, указан в пути запроса
-// Ответ с статусом 200 если кошелек найден. Ответ должен содержать в теле массив JSON-объектов с входящими и исходящими транзакциями кошелька. Каждый объект содержит параметры:
-// time – дата и время перевода в формате RFC 3339
-// from – ID исходящего кошелька
-// to – ID входящего кошелька
-// amount – сумма перевода. Дробное число
-// Статус ответа 404 если указанный кошелек не найден
 
 // GET /api/v1/wallet/{walletId}/history
 func getTransactionHistory(context *gin.Context) {

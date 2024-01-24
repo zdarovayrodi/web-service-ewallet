@@ -13,9 +13,7 @@ func InitDB() *gorm.DB {
 		panic("failed to connect database")
 	}
 
-	// migrate the schema
 	err = DB.AutoMigrate(&models.Wallet{}, &models.Transaction{})
-
 	if err != nil {
 		panic("error while migrating")
 	}
