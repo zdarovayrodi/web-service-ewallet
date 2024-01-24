@@ -31,3 +31,8 @@ func GetAllWallets(c *gin.Context, db *gorm.DB) {
 	db.Find(&wallets)
 	c.IndentedJSON(http.StatusOK, gin.H{"data": wallets})
 }
+
+func UpdateWallet(db *gorm.DB, wallet *Wallet) (*Wallet, error) {
+	err := db.Save(wallet).Error
+	return wallet, err
+}
