@@ -1,9 +1,6 @@
 package models
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -26,10 +23,10 @@ func GetWallet(db *gorm.DB, walletId string) (*Wallet, error) {
 	return &wallet, err
 }
 
-func GetAllWallets(c *gin.Context, db *gorm.DB) {
+func GetAllWallets(db *gorm.DB) ([]Wallet, error) {
 	var wallets []Wallet
-	db.Find(&wallets)
-	c.IndentedJSON(http.StatusOK, gin.H{"data": wallets})
+	err := db.Find(&wallets).Error
+	return wallets, err
 }
 
 func UpdateWallet(db *gorm.DB, wallet *Wallet) (*Wallet, error) {

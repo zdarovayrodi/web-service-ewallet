@@ -10,6 +10,12 @@ docker run -d -p 8080:8080 go-rest-api
 
 # Test
 
+```bash
+go test -v ./db/models/
+```
+
+# Usage
+
 ## Get all wallets
 
 ```bash
