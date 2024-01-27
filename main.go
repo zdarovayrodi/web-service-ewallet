@@ -14,7 +14,13 @@ var DB *gorm.DB
 
 // GET /api/v1/wallets
 func getWallets(context *gin.Context) {
-	models.GetAllWallets(context, DB)
+	wallets, err := models.GetAllWallets(DB)
+	if err != nil {
+		context.JSON(http.StatusNotFound, gin.H{"error": "Failed to retrieve wallets"})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"data": wallets})
 }
 
 // GET /api/v1/wallets/{walletID}
