@@ -10,13 +10,12 @@ import (
 )
 
 func setupTestDB() *gorm.DB {
-	// Connect to an in-memory SQLite database for testing
+	// in-memory SQLite database for testing
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect to database for testing")
 	}
 
-	// Migrate the schema
 	err = db.AutoMigrate(&Wallet{})
 	if err != nil {
 		panic("error while migrating")
@@ -53,7 +52,6 @@ func TestGetWallet(t *testing.T) {
 
 	walletID := createdWallet.ID.String()
 
-	// Test GetWallet
 	retrievedWallet, err := GetWallet(db, walletID)
 	assert.NoError(t, err)
 	assert.Equal(t, createdWallet.ID, retrievedWallet.ID)
@@ -71,14 +69,12 @@ func TestUpdateWallet(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Delete(createdWallet)
 
-	// Update the balance
 	createdWallet.Balance = 400.0
 	updatedWallet, err := UpdateWallet(db, createdWallet)
 	assert.NoError(t, err)
 	assert.Equal(t, createdWallet.ID, updatedWallet.ID)
 	assert.Equal(t, createdWallet.Balance, updatedWallet.Balance)
 
-	// Retrieve from the database and check if the balance is updated
 	retrievedWallet, err := GetWallet(db, createdWallet.ID.String())
 	assert.NoError(t, err)
 	assert.Equal(t, createdWallet.Balance, retrievedWallet.Balance)
