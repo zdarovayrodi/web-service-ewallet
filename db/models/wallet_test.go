@@ -16,7 +16,7 @@ func setupTestDB() *gorm.DB {
 		panic("failed to connect to database for testing")
 	}
 
-	err = db.AutoMigrate(&Wallet{})
+	err = db.AutoMigrate(&Wallet{}, &Transaction{})
 	if err != nil {
 		panic("error while migrating")
 	}
